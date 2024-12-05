@@ -131,13 +131,13 @@
                             Jon Renzo Toledo
                         </h3>
                         <p class="text-xs uppercase text-gray-500">
-                            {role}
+                            Mid Laner
                         </p>
                     </div>
                 </div>
 
                 <p class="mt-3 text-gray-500 italic">
-                    {quote}
+                    Onting bato, onting semento. Munumento
                 </p>
 
                 <!-- Social Brands -->

@@ -13,7 +13,7 @@
                 <nav aria-label="Global" class="hidden md:block">
                     <ul class="flex items-center gap-6 text-sm">
                         <li>
-                            <a class="text-gray-500 transition hover:text-black font-poppins" href="#"> Now Showing</a>
+                            <a class="text-gray-500 transition hover:text-black font-poppins" href="../now_showing.php"> Now Showing</a>
                         </li>
                         <li>
                             <a class="text-gray-500 transition hover:text-black font-poppins" href="../about.php"> About </a>
@@ -32,21 +32,46 @@
                 </nav>
 
                 <div class="flex items-center gap-4">
-                    <div class="sm:flex sm:gap-4">
-                        <a
-                            class="rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white shadow font-poppins font-bold"
-                            href="../login.php">
-                            Login
-                        </a>
-
-                        <div class="hidden sm:flex">
-                            <a
-                                class="rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 font-poppins font-bold"
-                                href="../register.php">
-                                Register
-                            </a>
+                    <?php
+                    if (isset($_SESSION['uemail'])) {
+                    ?>
+                        <div class="sm:flex sm:gap-4">
+                            <details>
+                                <summary>
+                                    <a
+                                        class="rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white shadow font-poppins font-bold"
+                                        href="">
+                                        My Profile
+                                    </a>
+                                </summary>
+                                <ul class="bg-base-100 rounded-t-none p-2">
+                                    <li><a>Profile</a></li>
+                                    <li><a href="../logout.php">Logout</a></li>
+                                </ul>
+                            </details>
                         </div>
-                    </div>
+
+                    <?php
+                    } else { ?>
+                        <div class="sm:flex sm:gap-4">
+                            <a
+                                class="rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white shadow font-poppins font-bold"
+                                href="../login.php">
+                                Login
+                            </a>
+
+                            <div class="hidden sm:flex">
+                                <a
+                                    class="rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 font-poppins font-bold"
+                                    href="../register.php">
+                                    Register
+                                </a>
+                            </div>
+                        </div>
+                    <?php
+                    }
+                    ?>
+
 
                     <div class="block md:hidden">
                         <button class="rounded bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75">
