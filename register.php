@@ -1,3 +1,117 @@
+<?php
+require_once './includes/config.php';
+
+$email = $username = $password = $confirm_password = "";
+$email_err = $username_err = $password_err = $confirm_password_err = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Email Validation
+    if (empty(trim($_POST["email"]))) {
+        $email_err = "Please enter an email address.";
+    } elseif (!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
+        $email_err = "Invalid email format.";
+    } else {
+        $sql = "SELECT user_id FROM user WHERE email = ?";
+        if ($stmt = mysqli_prepare($con, $sql)) {
+            mysqli_stmt_bind_param($stmt, "s", $param_email);
+
+            $param_email = trim($_POST["email"]);
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_store_result($stmt);
+
+                if (mysqli_stmt_num_rows($stmt) == 1) {
+                    $email_err = "This email is already registered.";
+                } else {
+                    $email = trim($_POST["email"]);
+                }
+            } else {
+                echo "Oops! Something went wrong. Please try again later.";
+            }
+            mysqli_stmt_close($stmt);
+        }
+    }
+    // Username Validation
+    if (empty(trim($_POST["username"]))) {
+        $username_err = "Please enter a username.";
+    } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', trim($_POST["username"]))) {
+        $username_err = "Username can only contain letters, numbers, and underscores.";
+    } else {
+        $sql = "SELECT user_id FROM user WHERE username = ?";
+
+        if ($stmt = mysqli_prepare($con, $sql)) {
+            mysqli_stmt_bind_param($stmt, "s", $param_username);
+
+            $param_username = trim($_POST["username"]);
+
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_store_result($stmt);
+
+                if (mysqli_stmt_num_rows($stmt) == 1) {
+                    $username_err = "This username is already taken.";
+                } else {
+                    $username = trim($_POST["username"]);
+                }
+            } else {
+                echo "Oops! Something went wrong. Please try again later.";
+            }
+            mysqli_stmt_close($stmt);
+        }
+    }
+    // Password Validation
+    if (empty(trim($_POST["password"]))) {
+        $password_err = "Please enter a password.";
+    } elseif (strlen(trim($_POST["password"])) < 8) {
+        $password_err = "Password must be at least 8 characters long.";
+    } else {
+        $password = trim($_POST["password"]);
+    }
+    if (empty(trim($_POST["confirm-password"]))) {
+        $confirm_password_err = "Please confirm your password.";
+    } else {
+        $confirm_password = trim($_POST["confirm-password"]);
+        if ($password != $confirm_password) {
+            $confirm_password_err = "Passwords do not match.";
+        }
+    }
+
+    if (empty($email_err) && empty($username_err) && empty($password_err) && empty($confirm_password_err)) {
+        $sql = "INSERT INTO user(email, username, pass) VALUES (?, ?, ?)";
+
+        if ($stmt = mysqli_prepare($con, $sql)) {
+            mysqli_stmt_bind_param($stmt, "sss", $param_email, $param_username, $param_password);
+            $param_email = $email;
+            $param_username = $username;
+            $param_password = password_hash($password, PASSWORD_DEFAULT);
+            if (mysqli_stmt_execute($stmt)) {
+                header("location: login.php");
+                exit();
+            } else {
+                echo "Oops! Something went wrong. Please try again later.";
+            }
+            mysqli_stmt_close($stmt);
+        }
+    }
+    if (empty($email_err) && empty($username_err) && empty($password_err) && empty($confirm_password_err)) {
+        $sql = "INSERT INTO user_details(user_id) VALUES (?)";
+        if ($stmt = mysqli_prepare($con, $sql)) {
+            mysqli_stmt_bind_param($stmt, "s", $param_uid);
+            $param_uid = $_SESSION['uid'];
+            if (mysqli_stmt_execute($stmt)) {
+                header("location: login.php");
+                exit();
+            } else {
+                echo "Oops! Something went wrong. Please try again later.";
+            }
+            mysqli_stmt_close($stmt);
+        }
+    }
+
+
+
+    mysqli_close($con);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en" data-theme="nord">
 
@@ -16,12 +130,12 @@
     include './includes/header.php';
     ?>
     <div class="flex align-middle justify-center min-h-[calc(100vh-120px)] items-center px-4 pb-5 ">
-        <div class="w-full max-w-md mx-auto">
+        <div class="w-[90%] max-w-[600px] mx-auto">
             <div class="mt-7 bg-white border border-gray-200 rounded-xl shadow-xl">
                 <div class="p-4 sm:p-7">
                     <div class="text-center">
-                        <h1 class="block text-3xl font-bold text-gray-800">Sign up</h1>
-                        <p class="mt-2 text-sm text-gray-600">
+                        <h1 class="block text-4xl font-bold text-gray-800">Sign up</h1>
+                        <p class="mt-4 text-sm text-gray-600">
                             Already have an account?
                             <a class="text-blue-600 decoration-2 hover:underline focus:outline-none focus:underline font-medium" href="./login.php">
                                 Log in here
@@ -43,57 +157,103 @@
                         <div class="py-3 flex items-center text-xs text-gray-400 uppercase before:flex-1 before:border-t before:border-gray-200 before:me-6 after:flex-1 after:border-t after:border-gray-200 after:ms-6">Or</div>
 
                         <!-- Form -->
-                        <form>
+                        <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                             <div class="grid gap-y-4">
-                                <!-- Form Group -->
+                                <!-- Email input with error handling -->
                                 <div>
                                     <label for="email" class="block text-sm mb-2 font-poppins">Email address</label>
                                     <div class="relative">
-                                        <input type="email" id="email" name="email" class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none" required aria-describedby="email-error">
-                                        <div class="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                                            <svg class="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                            </svg>
-                                        </div>
+                                        <input type="email" id="email" name="email"
+                                            class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 
+                    <?php echo (!empty($email_err)) ? 'border-red-500' : ''; ?>"
+                                            value="<?php echo $email; ?>"
+                                            required
+                                            aria-describedby="email-error">
+                                        <?php if (!empty($email_err)): ?>
+                                            <div class="absolute inset-y-0 end-0 pointer-events-none pe-3">
+                                                <svg class="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+                                                </svg>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <p class="hidden text-xs text-red-600 mt-2" id="email-error">Please include a valid email address so we can get back to you</p>
+                                    <p class="text-xs text-red-600 mt-2" id="email-error">
+                                        <?php echo $email_err; ?>
+                                    </p>
                                 </div>
-                                <!-- End Form Group -->
 
-                                <!-- Form Group -->
+                                <!-- Username input with error handling -->
+                                <div>
+                                    <label for="username" class="block text-sm mb-2 font-poppins">Username</label>
+                                    <div class="relative">
+                                        <input type="text" id="username" name="username"
+                                            class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 
+                    <?php echo (!empty($username_err)) ? 'border-red-500' : ''; ?>"
+                                            value="<?php echo $username; ?>"
+                                            required
+                                            aria-describedby="username-error">
+                                        <?php if (!empty($username_err)): ?>
+                                            <div class="absolute inset-y-0 end-0 pointer-events-none pe-3">
+                                                <svg class="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+                                                </svg>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <p class="text-xs text-red-600 mt-2" id="username-error">
+                                        <?php echo $username_err; ?>
+                                    </p>
+                                </div>
+
+                                <!-- Password input with error handling -->
                                 <div>
                                     <label for="password" class="block text-sm mb-2 font-poppins">Password</label>
                                     <div class="relative">
-                                        <input type="password" id="password" name="password" class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none" required aria-describedby="password-error">
-                                        <div class="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                                            <svg class="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                            </svg>
-                                        </div>
+                                        <input type="password" id="password" name="password"
+                                            class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 
+                    <?php echo (!empty($password_err)) ? 'border-red-500' : ''; ?>"
+                                            required
+                                            aria-describedby="password-error">
+                                        <?php if (!empty($password_err)): ?>
+                                            <div class="absolute inset-y-0 end-0 pointer-events-none pe-3">
+                                                <svg class="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+                                                </svg>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <p class="hidden text-xs text-red-600 mt-2" id="password-error">8+ characters required</p>
+                                    <p class="text-xs text-red-600 mt-2" id="password-error">
+                                        <?php echo $password_err; ?>
+                                    </p>
                                 </div>
-                                <!-- End Form Group -->
 
-                                <!-- Form Group -->
+                                <!-- Confirm Password input with error handling -->
                                 <div>
                                     <label for="confirm-password" class="block text-sm mb-2 font-poppins">Confirm Password</label>
                                     <div class="relative">
-                                        <input type="password" id="confirm-password" name="confirm-password" class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none" required aria-describedby="confirm-password-error">
-                                        <div class="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                                            <svg class="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                                            </svg>
-                                        </div>
+                                        <input type="password" id="confirm-password" name="confirm-password"
+                                            class="py-3 px-4 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 
+                    <?php echo (!empty($confirm_password_err)) ? 'border-red-500' : ''; ?>"
+                                            required
+                                            aria-describedby="confirm-password-error">
+                                        <?php if (!empty($confirm_password_err)): ?>
+                                            <div class="absolute inset-y-0 end-0 pointer-events-none pe-3">
+                                                <svg class="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+                                                </svg>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                    <p class="hidden text-xs text-red-600 mt-2" id="confirm-password-error">Password does not match the password</p>
+                                    <p class="text-xs text-red-600 mt-2" id="confirm-password-error">
+                                        <?php echo $confirm_password_err; ?>
+                                    </p>
                                 </div>
-                                <!-- End Form Group -->
 
                                 <!-- Checkbox -->
                                 <div class="flex items-center">
                                     <div class="flex">
-                                        <input id="remember-me" name="remember-me" type="checkbox" class="shrink-0 mt-0.5 border-gray-200 rounded text-blue-600 focus:ring-blue-500">
+                                        <input id="remember-me" name="remember-me" type="checkbox"
+                                            class="shrink-0 mt-0.5 border-gray-200 rounded text-blue-600 focus:ring-blue-500">
                                     </div>
                                     <div class="ms-3">
                                         <label for="remember-me" class="text-sm">I accept the <a class="text-blue-600 decoration-2 hover:underline focus:outline-none focus:underline font-medium" href="#">Terms and Conditions</a></label>

@@ -6,7 +6,6 @@
                     <span class="sr-only">Home</span>
                     <img src="../images/logo-black.png" class="h-28">
                 </a>
-
             </div>
 
             <div class="md:flex md:items-center md:gap-12">
@@ -18,16 +17,12 @@
                         <li>
                             <a class="text-gray-500 transition hover:text-black font-poppins" href="../about.php"> About </a>
                         </li>
-
                         <li>
                             <a class="text-gray-500 transition hover:text-black font-poppins" href="../our_team.php"> Our Team </a>
                         </li>
-
                         <li>
                             <a class="text-gray-500 transition hover:text-black font-poppins" href="../contact_us.php"> Contact Us </a>
                         </li>
-
-
                     </ul>
                 </nav>
 
@@ -36,21 +31,30 @@
                     if (isset($_SESSION['uemail'])) {
                     ?>
                         <div class="sm:flex sm:gap-4">
-                            <details>
-                                <summary>
-                                    <a
-                                        class="rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white shadow font-poppins font-bold"
-                                        href="">
-                                        My Profile
-                                    </a>
-                                </summary>
-                                <ul class="bg-base-100 rounded-t-none p-2">
-                                    <li><a>Profile</a></li>
-                                    <li><a href="../logout.php">Logout</a></li>
+                            <div class="relative group">
+                                <a
+                                    class="rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white shadow font-poppins font-bold"
+                                    href="#">
+                                    My Profile
+                                </a>
+                                <ul class="absolute hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-lg mt-2 py-2 w-48 z-50">
+                                    <li>
+                                        <a
+                                            href="../profile.php"
+                                            class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition">
+                                            View Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            href="../logout.php"
+                                            class="block px-4 py-2 text-red-600 hover:bg-gray-100 transition">
+                                            Logout
+                                        </a>
+                                    </li>
                                 </ul>
-                            </details>
+                            </div>
                         </div>
-
                     <?php
                     } else { ?>
                         <div class="sm:flex sm:gap-4">
@@ -71,7 +75,6 @@
                     <?php
                     }
                     ?>
-
 
                     <div class="block md:hidden">
                         <button class="rounded bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75">
