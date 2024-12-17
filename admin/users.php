@@ -2,7 +2,6 @@
 session_start();
 require_once '../includes/config.php';
 
-// Fetch user details from the database
 $users = [];
 $sql = "SELECT ud.user_id, ud.first_name, ud.last_name, u.email, ud.gender, ud.phone_number
         FROM user_details ud

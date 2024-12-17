@@ -2,7 +2,6 @@
 session_start();
 require_once '../includes/config.php';
 
-// Fetch number of reservations per movie
 $movie_reservations = [];
 $sql_movies = "SELECT m.movie_id, m.movie_name, COUNT(r.reservation_id) as reservation_count
                FROM movie m
@@ -20,7 +19,6 @@ while ($stmt_movies->fetch()) {
 }
 $stmt_movies->close();
 
-// Function to export data as CSV
 function exportToCSV($data, $filename)
 {
     header('Content-Type: text/csv');
@@ -37,7 +35,6 @@ function exportToCSV($data, $filename)
     exit();
 }
 
-// Function to export data as basic Excel-compatible HTML table
 function exportToExcelHTML($data, $filename)
 {
     header('Content-Type: application/vnd.ms-excel');

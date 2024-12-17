@@ -2,13 +2,11 @@
 session_start();
 require_once "../includes/config.php";
 
-// Fetch movie data from the database
 $stmt = $con->prepare("SELECT movie_id, movie_name, movie_director, movie_price, movie_path, movie_desc, movie_trailer, movie_imdb FROM movie");
 $stmt->execute();
 $result = $stmt->get_result();
 $movies = $result->fetch_all(MYSQLI_ASSOC);
 
-// Handle delete operation
 if (isset($_GET['delete_id'])) {
     $delete_id = $_GET['delete_id'];
     $delete_stmt = $con->prepare("DELETE FROM movie WHERE movie_id = ?");
@@ -22,7 +20,6 @@ if (isset($_GET['delete_id'])) {
     $delete_stmt->close();
 }
 
-// Handle update operation
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $movieId = $_POST['movie_id'];
     $movieName = $_POST['movie_name'];

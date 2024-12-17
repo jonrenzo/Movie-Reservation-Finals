@@ -12,7 +12,6 @@ if (isset($_POST['pay'])) {
     $theater = $_POST['theater'];
     $selected_seats = $_POST['selected_seats'];
 
-    // Fetch movie details for the email
     $sql = "SELECT movie_name FROM movie WHERE movie_id = ?";
     $stmt = $con->prepare($sql);
     $stmt->bind_param("i", $movie_id);

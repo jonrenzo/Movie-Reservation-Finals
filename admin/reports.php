@@ -2,7 +2,6 @@
 session_start();
 require_once '../includes/config.php';
 
-// Fetch total number of reservations
 $total_reservations = 0;
 $sql_total = "SELECT COUNT(*) as total FROM reservation";
 $stmt_total = $con->prepare($sql_total);
@@ -11,7 +10,7 @@ $stmt_total->bind_result($total_reservations);
 $stmt_total->fetch();
 $stmt_total->close();
 
-// Fetch number of reservations per movie
+
 $movie_reservations = [];
 $sql_movies = "SELECT m.movie_id, m.movie_name, COUNT(r.reservation_id) as reservation_count
                FROM movie m
