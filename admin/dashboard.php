@@ -1,6 +1,33 @@
 <?php
 session_start();
+require_once "../includes/config.php";
 
+$stmt = $con->prepare("SELECT COUNT(*) AS total_movies FROM movie");
+$stmt->execute();
+$result = $stmt->get_result();
+$movies_count = $result->fetch_assoc()['total_movies'];
+
+$stmt = $con->prepare("SELECT COUNT(*) AS total_users FROM user");
+$stmt->execute();
+$result = $stmt->get_result();
+$users_count = $result->fetch_assoc()['total_users'];
+
+
+$stmt = $con->prepare("SELECT COUNT(*) AS total_reservations FROM reservation");
+$stmt->execute();
+$result = $stmt->get_result();
+$reservation_count = $result->fetch_assoc()['total_reservations'];
+
+$stmt = $con->prepare("SELECT DATE(date) AS reservation_date, COUNT(*) AS reservation_count FROM reservation GROUP BY DATE(date) ORDER BY reservation_date");
+$stmt->execute();
+$result = $stmt->get_result();
+$chart_data = [];
+while ($row = $result->fetch_assoc()) {
+    $chart_data[] = [
+        'x' => $row['reservation_date'],
+        'y' => $row['reservation_count']
+    ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -22,9 +49,8 @@ session_start();
             box-shadow: none !important;
         }
     </style>
-    <?php
-    include 'header.php';
-    ?>
+    <?php include 'header.php'; ?>
+
     <!-- Content -->
     <div>
         <h1 class="font-semibold font-poppins text-3xl">Dashboard</h1>
@@ -43,15 +69,15 @@ session_start();
                 </div>
 
                 <div class="text-center">
-                    <h3 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-gray-600 mt-3">
-                        [# of movies]
+                    <h3 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-gray-800 mt-3">
+                        <?php echo $movies_count; ?> movies
                     </h3>
                 </div>
             </div>
             <!-- End Card -->
 
             <!-- Card -->
-            <div class="flex flex-col items-center gap-y-3 lg:gap-y-5 p-4 md:p-5 bg-white border shadow-sm rounded-xl dark:bg-neutral-900 dark:border-neutral-800">
+            <div class="flex flex-col gap-y-3 lg:gap-y-5 p-4 md:p-5 bg-white border shadow-sm rounded-xl items-center justify-center dark:bg-neutral-900 dark:border-neutral-800">
                 <div class="inline-flex justify-center items-center">
                     <span class="size-2 inline-block bg-green-500 rounded-full me-2"></span>
                     <span class="text-xs font-semibold uppercase text-white ">Users</span>
@@ -59,22 +85,22 @@ session_start();
 
                 <div class="text-center">
                     <h3 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-gray-800 dark:text-neutral-200 mt-3">
-                        [# of users]
+                        <?php echo $users_count; ?> users
                     </h3>
                 </div>
             </div>
             <!-- End Card -->
 
             <!-- Card -->
-            <div class="flex flex-col items-center justify-center gap-y-3 lg:gap-y-5 p-4 md:p-5 bg-white border shadow-sm rounded-xl">
+            <div class="flex flex-col gap-y-3 lg:gap-y-5 p-4 md:p-5 bg-white border shadow-sm rounded-xl items-center justify-center">
                 <div class="inline-flex justify-center items-center">
                     <span class="size-2 inline-block bg-red-500 rounded-full me-2"></span>
                     <span class="text-xs font-semibold uppercase text-black">Reservations Made</span>
                 </div>
 
                 <div class="text-center">
-                    <h3 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-gray-800 mt-3">
-                        [# of reservations]
+                    <h3 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-gray-800  mt-3">
+                        <?php echo $reservation_count; ?> chairs
                     </h3>
                 </div>
             </div>
@@ -91,21 +117,8 @@ session_start();
         <div class="flex justify-between items-center">
             <div>
                 <h2 class="text-sm text-gray-500 dark:text-neutral-500">
-                    Income
+                    Reservations Over Time
                 </h2>
-                <p class="text-xl sm:text-2xl font-medium text-gray-800">
-                    ₱123,456,789
-                </p>
-            </div>
-
-            <div>
-                <span class="py-[5px] px-1.5 inline-flex items-center gap-x-1 text-xs font-medium rounded-md bg-teal-100 text-teal-800 dark:bg-teal-500/10 dark:text-teal-500">
-                    <svg class="inline-block size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 5v14" />
-                        <path d="m19 12-7 7-7-7" />
-                    </svg>
-                    25%
-                </span>
             </div>
         </div>
         <!-- End Header -->
@@ -114,7 +127,6 @@ session_start();
     </div>
     <!-- End Card -->
 
-
     <!-- JavaScripts -->
     <script src="../node_modules/preline/dist/preline.js"></script>
     <script src="index.js"></script>
@@ -122,8 +134,57 @@ session_start();
     <script src="../node_modules/apexcharts/dist/apexcharts.min.js"></script>
     <script src="../node_modules/preline/dist/helper-apexcharts.js"></script>
     <script src="./js/script.js"></script>
-    <script src="https://kit.fontawesome.com/ef6e01e8ad.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/preline/2.0.3/preline.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var options = {
+                series: [{
+                    name: 'Reservations',
+                    data: <?php echo json_encode($chart_data); ?>
+                }],
+                chart: {
+                    height: 350,
+                    type: 'bar',
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    categories: <?php echo json_encode(array_column($chart_data, 'x')); ?>,
+                },
+                yaxis: {
+                    title: {
+                        text: 'Reservations'
+                    }
+                },
+                fill: {
+                    opacity: 1
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(val) {
+                            return val
+                        }
+                    }
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#hs-multiple-bar-charts"), options);
+            chart.render();
+        });
+    </script>
 </body>
 
 </html>

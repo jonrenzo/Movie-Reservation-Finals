@@ -50,12 +50,13 @@ $result = mysqli_query($con, $sql);
                             </p>
                         </div>
                         <div class="mt-auto flex border-t border-gray-200 divide-x divide-gray-200">
-                            <a class="font-poppins w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-es-xl bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50" href="#">
+                            <a class="font-poppins w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-es-xl bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50" href="<?php echo htmlspecialchars($row['movie_trailer']); ?>" target="_blank">
                                 Watch Trailer!
                             </a>
-                            <a class="text-green-600 font-poppins w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-ee-xl bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50" href="#">
+                            <a class="text-green-600 font-poppins w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-ee-xl bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50" href="booking.php?movie_id=<?php echo urlencode($row['movie_id']); ?>&movie_name=<?php echo urlencode($row['movie_name']); ?>">
                                 BUY TICKET
                             </a>
+
                         </div>
                     </div>
                 <?php endwhile; ?>

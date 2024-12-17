@@ -10,6 +10,29 @@ if (!isset($_SESSION['uid'])) {
 
 $user_id = $_SESSION['uid'];
 
+// Check if the user is already in the user_details table
+$check_sql = "SELECT * FROM user_details WHERE user_id = ?";
+if ($check_stmt = mysqli_prepare($con, $check_sql)) {
+    mysqli_stmt_bind_param($check_stmt, "i", $user_id);
+    mysqli_stmt_execute($check_stmt);
+    mysqli_stmt_store_result($check_stmt);
+
+    if (mysqli_stmt_num_rows($check_stmt) == 0) {
+        // User is not in the user_details table, insert the user ID
+        $insert_sql = "INSERT INTO user_details (user_id) VALUES (?)";
+        if ($insert_stmt = mysqli_prepare($con, $insert_sql)) {
+            mysqli_stmt_bind_param($insert_stmt, "i", $user_id);
+            if (mysqli_stmt_execute($insert_stmt)) {
+                // Successfully inserted, no need to redirect here
+            } else {
+                echo "Oops! Something went wrong. Please try again later.";
+            }
+            mysqli_stmt_close($insert_stmt);
+        }
+    }
+    mysqli_stmt_close($check_stmt);
+}
+
 // Fetch user data from the database
 $stmt = $con->prepare("SELECT * FROM user_details WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);

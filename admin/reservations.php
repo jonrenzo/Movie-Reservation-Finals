@@ -2,28 +2,27 @@
 session_start();
 require_once '../includes/config.php';
 
-// Fetch user details from the database
-$users = [];
-$sql = "SELECT ud.user_id, ud.first_name, ud.last_name, u.email, ud.gender, ud.phone_number
-        FROM user_details ud
-        JOIN user u ON ud.user_id = u.user_id";
+// Fetch reservation details from the database
+$reservations = [];
+$sql = "SELECT r.reservation_id, r.movie_id, r.seat, r.date, r.theater, r.name, r.email, m.movie_name
+        FROM reservation r
+        JOIN movie m ON r.movie_id = m.movie_id";
 $stmt = $con->prepare($sql);
-if ($stmt === false) {
-    echo "Error preparing statement: " . $con->error . "<br>"; // Debugging output
-} else {
-    $stmt->execute();
-    $stmt->bind_result($user_id, $first_name, $last_name, $email, $gender, $phone_number);
-    while ($stmt->fetch()) {
-        $users[] = [
-            'user_id' => $user_id,
-            'name' => $first_name . ' ' . $last_name,
-            'email' => $email,
-            'gender' => $gender,
-            'phone_number' => $phone_number
-        ];
-    }
-    $stmt->close();
+$stmt->execute();
+$stmt->bind_result($reservation_id, $movie_id, $seat, $date, $theater, $name, $email, $movie_name);
+while ($stmt->fetch()) {
+    $reservations[] = [
+        'reservation_id' => $reservation_id,
+        'movie_id' => $movie_id,
+        'seat' => $seat,
+        'date' => $date,
+        'theater' => $theater,
+        'name' => $name,
+        'email' => $email,
+        'movie_name' => $movie_name
+    ];
 }
+$stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -35,14 +34,14 @@ if ($stmt === false) {
     <link rel="icon" href="../images/logo.png" type="image/x-icon">
     <script src="https://kit.fontawesome.com/ef6e01e8ad.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="../node_modules/apexcharts/src/assets/apexcharts.css">
-    <title>Los Mojito's Entertainment | Users</title>
+    <title>Los Mojito's Entertainment | Reservations</title>
 </head>
 
 <body class="w-full pt-10 px-4 sm:px-6 md:px-8 lg:ps-72 font-poppins">
     <?php include 'header.php'; ?>
 
     <div>
-        <h1 class="font-semibold font-poppins text-3xl">Users</h1>
+        <h1 class="font-semibold font-poppins text-3xl">Reservations</h1>
     </div>
 
     <!-- Table Section -->
@@ -56,27 +55,11 @@ if ($stmt === false) {
                         <div class="px-5 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-800">
-                                    Users
+                                    Reservations
                                 </h2>
                                 <p class="text-sm text-gray-600">
-                                    Add users, edit and more.
+                                    View and manage reservations.
                                 </p>
-                            </div>
-
-                            <div>
-                                <div class="inline-flex gap-x-2">
-                                    <a class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:bg-gray-50" href="#">
-                                        View all
-                                    </a>
-
-                                    <a class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none" href="#">
-                                        <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M5 12h14" />
-                                            <path d="M12 5v14" />
-                                        </svg>
-                                        Add user
-                                    </a>
-                                </div>
                             </div>
                         </div>
                         <!-- End Header -->
@@ -91,7 +74,6 @@ if ($stmt === false) {
                                             <span class="sr-only">Checkbox</span>
                                         </label>
                                     </th>
-
                                     <th scope="col" class="ps-6 lg:ps-3 xl:ps-0 pe-6 py-3 text-start">
                                         <div class="flex items-center gap-x-2">
                                             <span class="text-xs font-semibold uppercase tracking-wide text-gray-800">
@@ -99,7 +81,6 @@ if ($stmt === false) {
                                             </span>
                                         </div>
                                     </th>
-
                                     <th scope="col" class="px-6 py-3 text-start">
                                         <div class="flex items-center gap-x-2">
                                             <span class="text-xs font-semibold uppercase tracking-wide text-gray-800">
@@ -107,29 +88,40 @@ if ($stmt === false) {
                                             </span>
                                         </div>
                                     </th>
-
                                     <th scope="col" class="px-6 py-3 text-start">
                                         <div class="flex items-center gap-x-2">
                                             <span class="text-xs font-semibold uppercase tracking-wide text-gray-800">
-                                                Gender
+                                                Movie Name
                                             </span>
                                         </div>
                                     </th>
-
                                     <th scope="col" class="px-6 py-3 text-start">
                                         <div class="flex items-center gap-x-2">
                                             <span class="text-xs font-semibold uppercase tracking-wide text-gray-800">
-                                                Phone Number
+                                                Seat
                                             </span>
                                         </div>
                                     </th>
-
+                                    <th scope="col" class="px-6 py-3 text-start">
+                                        <div class="flex items-center gap-x-2">
+                                            <span class="text-xs font-semibold uppercase tracking-wide text-gray-800">
+                                                Date
+                                            </span>
+                                        </div>
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-start">
+                                        <div class="flex items-center gap-x-2">
+                                            <span class="text-xs font-semibold uppercase tracking-wide text-gray-800">
+                                                Theater
+                                            </span>
+                                        </div>
+                                    </th>
                                     <th scope="col" class="px-6 py-3 text-end"></th>
                                 </tr>
                             </thead>
 
                             <tbody class="divide-y divide-gray-200">
-                                <?php foreach ($users as $user): ?>
+                                <?php foreach ($reservations as $reservation): ?>
                                     <tr>
                                         <td class="size-px whitespace-nowrap">
                                             <div class="ps-6 py-3">
@@ -144,34 +136,39 @@ if ($stmt === false) {
                                                 <div class="flex items-center gap-x-3">
                                                     <img class="inline-block size-[38px] rounded-full" src="https://placehold.co/30" alt="Avatar">
                                                     <div class="grow">
-                                                        <span class="block text-sm font-semibold text-gray-800"><?php echo htmlspecialchars($user['name']); ?></span>
+                                                        <span class="block text-sm font-semibold text-gray-800"><?php echo htmlspecialchars($reservation['name']); ?></span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="h-px w-72 whitespace-nowrap">
                                             <div class="px-6 py-3">
-                                                <span class="block text-sm text-gray-800"><?php echo htmlspecialchars($user['email']); ?></span>
+                                                <span class="block text-sm text-gray-800"><?php echo htmlspecialchars($reservation['email']); ?></span>
                                             </div>
                                         </td>
                                         <td class="size-px whitespace-nowrap">
                                             <div class="px-6 py-3">
-                                                <span class="py-1 px-1.5 inline-flex items-center gap-x-1 text-xs font-medium bg-teal-100 text-teal-800 rounded-full">
-                                                    <svg class="size-2.5" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-                                                    </svg>
-                                                    <?php echo htmlspecialchars($user['gender']); ?>
-                                                </span>
+                                                <span class="block text-sm text-gray-800"><?php echo htmlspecialchars($reservation['movie_name']); ?></span>
                                             </div>
                                         </td>
                                         <td class="size-px whitespace-nowrap">
                                             <div class="px-6 py-3">
-                                                <span class="text-sm text-gray-500"><?php echo htmlspecialchars($user['phone_number']); ?></span>
+                                                <span class="block text-sm text-gray-800"><?php echo htmlspecialchars($reservation['seat']); ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="size-px whitespace-nowrap">
+                                            <div class="px-6 py-3">
+                                                <span class="block text-sm text-gray-800"><?php echo htmlspecialchars($reservation['date']); ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="size-px whitespace-nowrap">
+                                            <div class="px-6 py-3">
+                                                <span class="block text-sm text-gray-800"><?php echo htmlspecialchars($reservation['theater']); ?></span>
                                             </div>
                                         </td>
                                         <td class="size-px whitespace-nowrap">
                                             <div class="px-6 py-1.5">
-                                                <a class="inline-flex items-center gap-x-1 text-sm text-blue-600 decoration-2 hover:underline focus:outline-none focus:underline font-medium" href="edit_user.php?user_id=<?php echo htmlspecialchars($user['user_id']); ?>">
+                                                <a class="inline-flex items-center gap-x-1 text-sm text-blue-600 decoration-2 hover:underline focus:outline-none focus:underline font-medium" href="edit_reservation.php?reservation_id=<?php echo htmlspecialchars($reservation['reservation_id']); ?>">
                                                     Edit
                                                 </a>
                                             </div>
@@ -186,7 +183,7 @@ if ($stmt === false) {
                         <div class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-t border-gray-200">
                             <div>
                                 <p class="text-sm text-gray-600">
-                                    <span class="font-semibold text-gray-800"><?php echo count($users); ?></span> results
+                                    <span class="font-semibold text-gray-800"><?php echo count($reservations); ?></span> results
                                 </p>
                             </div>
 

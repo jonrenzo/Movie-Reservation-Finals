@@ -34,3 +34,8 @@ function validateUsername() {
       console.error('Error:', error);
   });
 }
+function confirmDelete(movieId) {
+    if (confirm('Are you sure you want to delete this movie?')) {
+        window.location.href = 'view_movies.php?delete_id=' + movieId;
+    }
+}
